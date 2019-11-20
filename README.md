@@ -20,9 +20,9 @@ pam_mg42 //enable or disable only mg42 1=enable 0=disable
 pam_nade //start training mode 1=enable 0=disable
 pam_mod //switching between score system 1=nightcup 0=funwar
 pam_start_break //start break next round 1=start break 0=end break
+serverstate // "ready_up" for prematch "playing" for skip ready check
 ```
 
-serverstate // "ready_up" for prematch "playing" for skip ready check
 
 # Setup Guide (with Release Version)
 
