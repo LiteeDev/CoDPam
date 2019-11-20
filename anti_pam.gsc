@@ -36,7 +36,9 @@ _init( register )
     codam\utils::debug( 0, "======== _anti_pam/_init:: |", register, "|" );
     [[ register ]](    "spawnPlayer", ::onSpawnPlayer, "thread" );
     [[ register ]](    "PlayerConnect", ::ReadyButton, "thread" );
+	//////////added by huepfer//////////////
 	[[ register ]](    "spawnSpectator", ::speactator, "thread" );
+	////////////////////////////////////////
     [[ register ]](      "PlayerDisconnect", ::RemoveReady, "thread" );
     //setcvar("serverstate", "");
     return;
@@ -64,6 +66,7 @@ _start()
     {
         setCvar("serverstate", "ready_up");
     }
+	//////////added by huepfer//////////////
 	if(getCvar("pam_prematch") == "" || !isDefined(getCvar("pam_prematch")))
     {
         setCvar("pam_prematch", "1");
@@ -72,46 +75,83 @@ _start()
     {
         setCvar("pam_halftime", "0");
     }
-
     if(getCvar("pam_strattime") == "" || !isDefined(getCvar("pam_starttime")))
     {
         setCvar("pam_strattime", "1");
     }
+    if(getCvar("pam_mapobjects") == "" || !isDefined(getCvar("pam_mapobjects")))
+    {
+        setCvar("pam_mapobjects", "1");
+    }
+    if(getCvar("pam_mg42") == "" || !isDefined(getCvar("pam_mg42")))
+    {
+        setCvar("pam_mg42", "1");
+    }
+	if(getCvar("pam_nade") == "" || !isDefined(getCvar("pam_nade")))
+	{
+        setCvar("pam_nade", "0");
+    }	
+	if(getCvar("pam_mod") == "" || !isDefined(getCvar("pam_mod")))
+	{
+		setCvar("pam_mod", "1");
+	}
 
 	level.breakstop = 0;
-	if(getcvar("pam_start_break") == "")
+	if(getcvar("pam_start_break") == "" || !isDefined(getCvar("pam_start_break")))
+	{
 		setcvar("pam_start_break", "0");
+	}
 
 	precacheString(&"^1Not ready");
 	precacheString(&"^2Ready");
 	precacheStatusIcon( "gfx/hud/hud@objective_bel.tga" );
 	precacheStatusIcon( "gfx/hud/headicon@re_objcarrier.dds" );
 
+	if( (game["axisscore"] == 0 && game["alliedscore"] == 0) || getCvar("pam_halftime") == "0")
+	{
+		game["halfaxisscore"] = 0;
+		game["halfalliedscore"] = 0;
+	}
+
+	////////////////////////////////////////
     serverCvar = getCvar("serverstate");
     level.ServerState = RemoveString(serverCvar, "^7");
     switch(level.ServerState)
     {
         case "ready_up":
-			setCvar("pam_prematch", 1);
-			setCvar("scr_sd_roundlength", "2.5");
-			setcvar("store_ready", "");
-			thread Prematch_Alive();
-			thread StaticPrematchHud();
-			ShowScores();
-			SetScores();
-			thread ReadyMonitor();
-			[[ level.gtd_call ]]( "roundClock", 0);
-			break;
+						setCvar("scr_sd_roundlength", "2.5");
+						setcvar("store_ready", "");
+						thread Prematch_Alive();
+						thread StaticPrematchHud();
+						//////////added by huepfer//////////////
+						setcvar("g_speed", "190");
+						setcvar("g_gravity", "800");
+						setCvar("pam_prematch", 1);
+						if(getCvar("pam_nade") == "1" && getCvar("pam_halftime") == "1")
+						{
+							setCvar("pam_nade", "0");
+						}
+						game["halfaxisscore"] = 0;
+						game["halfalliedscore"] = 0;
+						//////////////////////////////////////
+						thread ReadyMonitor();
+						[[ level.gtd_call ]]( "roundClock", 0);
+						break;
 
         case "playing":
-			setCvar("pam_prematch", 0);
-           
-            ShowScores();
-            StartingLife();
-			break;
+						//////////added by huepfer//////////////
+						setCvar("pam_prematch", 0);
+						if(getCvar("pam_nade") == "1")
+						{
+							setCvar("pam_nade", "0");
+						}			   
+						//////////////////////////////////////
+						StartingLife();
+						break;
     }
     return;
 }
+//////////added by huepfer//////////////
 speactator()
 {
 	self.rdy destroy();
@@ -121,19 +161,20 @@ onSpawnPlayer(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9,
 {
 	if(getCvar("pam_prematch") == "1")
 	{
+		if(getCvar("pam_nade") == "1" && getCvar("pam_halftime") == "0")
+		{
+			self thread nade();
+		}
 	
 		self.rdy destroy();	
 		wait 0.05;
 		self.rdy = newClientHudElem(self);
 		self.rdy.archived = false;
-		self.rdy.x = 565;
-		self.rdy.y = 410;
-		self.rdy.alignX = "left";
-		self.rdy.alignY = "top";
+		self.rdy.x = 537;
+		self.rdy.y = 250;
+		self.rdy.alignX = "left";		
 		self.rdy.sort = 1;
-		self.rdy.fontScale = 1;
-		
-	
+		self.rdy.fontScale = 0.9;
 	
 		if(self.ready == true)
 		{		
@@ -148,8 +189,26 @@ onSpawnPlayer(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9,
 		}
 	
 	}
-}
 
+	if(getcvar("pam_start_break") == "1")
+	{							
+		self setclientcvar("pam_start_break", "1");					
+	}
+	else if(getcvar("pam_start_break") == "0")
+	{							
+		self setclientcvar("pam_start_break", "0");					
+	}
+
+	if( game["axisscore"] == 0 && game["alliedscore"] == 0 && getCvar("pam_prematch") == "1")
+	{
+		self.pers[ "kills" ] = 0;
+		self.pers[ "score" ] = 0;
+		self.pers[ "deaths" ] = 0;
+		self.score = 0;
+		self.deaths = 0;
+	}
+}
+////////////////////////////////////////
 ReadyMonitor()
 {
     for(;;)
@@ -183,19 +242,15 @@ ReadyMonitor()
         {
             iprintlnbold("^3All Players Ready");
             iprintlnbold("^3Starting Match Countdown");
+			//////////added by huepfer//////////////
+			iPrintLnBold("  ");
+			iPrintLnBold("Don't forget the demo and use AC!");
+			setCvar("pam_nade", "0");				
 			level.match_hud_instructions destroy();
 			level.match_hud_axisreadyplayers destroy();
-			level.match_hud_alliesreadyplayers destroy();
-            wait 7;
-            setCvar("serverstate", "playing");
-            setCvar("scr_sd_roundlength", 2.5);
-			setCvar("pam_prematch", 0);
-			if(getCvar("pam_halftime") == "0")
-			{
-				game["axisscore"] = 0;
-				game["alliedscore"] = 0;
-			}
-			
+			level.match_hud_alliesreadyplayers destroy();			
+			game["halfaxisscore"] = 0;
+			game["halfalliedscore"] = 0;
 			level.allplayers = getentarray("player", "classname");
 			for(i = 0; i < level.allplayers.size; i++)
 			{
@@ -205,6 +260,27 @@ ReadyMonitor()
 					level.allplayers[i].rdy destroy();
 				}
 			}
+				level.clock = newHudElem();
+				level.clock.x = 320;
+				level.clock.y = 460;
+				level.clock.alignX = "center";
+				level.clock.alignY = "middle";
+				level.clock.font = "bigfixed";
+				level.clock.label =&"^5";
+				level.clock setTimer(7);
+			 setCvar("serverstate", "playing");
+				
+            wait 7;
+           
+			setCvar("pam_prematch", 0);
+            setCvar("scr_sd_roundlength", 2.5);
+			
+			if(getCvar("pam_halftime") == "0")
+			{
+				game["axisscore"] = 0;
+				game["alliedscore"] = 0;
+			}
+			////////////////////////////////////
             map_restart(true);
             level notify("matchstart");
             return;
@@ -218,6 +294,8 @@ ReadyMonitor()
 }
 
 // Changes players' ready status
+
+/////////////////changed/added by huepfer///////////////////////
 ReadyButton(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9,
                 b0, b1, b2, b2, b4, b5, b6, b7, b8, b9)
 {
@@ -233,11 +311,11 @@ ReadyButton(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9,
         wait 1;
 
   
-
+	
     while (level.ServerState == "ready_up")
     {
         wait .01;
-        if(self useButtonPressed() == true && self.pers["team"] != "spectator")
+        if(self useButtonPressed() == true && self.pers["team"] != "spectator" && getCvar("serverstate") == "ready_up" && getCvar("pam_nade") == "0")
         {
           
             if(self.ready == false)
@@ -246,28 +324,30 @@ ReadyButton(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9,
                 str = getcvar("store_ready") + self.name;
                 iprintln(self.name + " ^3is ready");
 				self.statusicon = "gfx/hud/headicon@re_objcarrier.dds";
-				self.rdy.label = &"^2Ready";
-		
+				self.rdy.label = &"^2Ready";		
                 setcvar("store_ready", str);
             }
             else
             {
                 self.ready = false;
                 setcvar("store_ready", RemoveString(getcvar("store_Ready"), self.name));
-                                  iprintln(self.name + " ^3is not ready");
-					self.statusicon = "gfx/hud/hud@objective_bel.tga";
-					self.rdy.label = &"^1Not ready";
-
+                iprintln(self.name + " ^3is not ready");
+				self.statusicon = "gfx/hud/hud@objective_bel.tga";
+				self.rdy.label = &"^1Not ready";
             }
-
-            self playLocalSound("hq_score");        }
-        while(self useButtonPressed() == true)
-            wait.001;
+            self playLocalSound("hq_score");        
+		}
+		if(getCvar("pam_nade") == "1" && self useButtonPressed() == true && self.pers["team"] != "spectator" && getCvar("serverstate") == "ready_up")
+		{
+			self  iprintln("You can not ready up in training mode ");
+		}
+		while(self useButtonPressed() == true)
+			wait.001;
     }
     return;
 }
 
-
+////////////////////////////////////////////
 //Keep the players alive during prematch, so captains can talk.
 Prematch_Alive()
 {
@@ -318,58 +398,49 @@ StaticPrematchHud()
 
 // WHEN SERVERSTATE = PLAYING
 
+/////////////////changed/added by huepfer///////////////////////
 ShowCopyRight()
 {
     level.match_hud_title = newHudElem();
     level.match_hud_title.archived = false;
-    level.match_hud_title.alignX = "left";
-    level.match_hud_title.x = 505;
+    level.match_hud_title.alignX = "right";
+    level.match_hud_title.x = 630;
     level.match_hud_title.y = 472;
     level.match_hud_title.sort = 9998;
     level.match_hud_title.fontscale = .6;
-    level.match_hud_title.label =&"^7PAM Mode for 1.1 by LiteDev & Reny";
+	if(getCvar("sv_pure") == "1" && getCvar("scr_instantkill") == "0")
+	{
+   		level.match_hud_title.label =&"^7PAM Mod for 1.1                     sv_pure ^2ON";
+	}
+	else if(getCvar("sv_pure") == "0" && getCvar("scr_instantkill") == "0")
+
+	{
+		level.match_hud_title.label =&"^7PAM Mod for 1.1                   sv_pure ^1OFF";
+	}
+	else if(getCvar("sv_pure") == "1" && getCvar("scr_instantkill") == "1")
+	{
+   		level.match_hud_title.label =&"^7PAM Mod for 1.1    1sk ^2ON^7    sv_pure ^2ON";
+	}
+	else if(getCvar("sv_pure") == "0" && getCvar("scr_instantkill") == "1")
+
+	{
+		level.match_hud_title.label =&"^7PAM Mod for 1.1   1sk ^2ON^7    sv_pure ^1OFF";
+	}
 }
+//////////////////////////////////////////////////////////
 
 
-ShowScores()
-{
-    level.match_hud_axisready = newHudElem();
-    level.match_hud_axisready.archived = false;
-    level.match_hud_axisready.alignX = "left";
-    level.match_hud_axisready.x = 400;
-    level.match_hud_axisready.y = 470;
-    level.match_hud_axisready.sort = 9998;
-    level.match_hud_axisready.fontscale = .7;
-    level.match_hud_axisready.label =&"^7AXIS SCORE: ";
-
-    level.match_hud_alliesready = newHudElem();
-    level.match_hud_alliesready.archived = false;
-    level.match_hud_alliesready.alignX = "left";
-    level.match_hud_alliesready.x = 390;
-    level.match_hud_alliesready.y = 460;
-    level.match_hud_alliesready.sort = 9998;
-    level.match_hud_alliesready.fontscale = .7;
-    level.match_hud_alliesready.label =&"^7ALLIES SCORE: ";
-}
-
-SetScores()
-{
-    if (isdefined (level.match_hud_axisready))
-            level.match_hud_axisready setValue(game["axisscore"]);
-    if (isdefined (level.match_hud_alliesready))
-            level.match_hud_alliesready setValue(game["alliedscore"]);
-}
-
-
+/////////////////changed/added by huepfer///////////////////////
 StartingLife()
-{
-    
+{    
     switch(level.ham_g_gametype) {
         case "sd":
-            SetScores();
+            
             // Check each side rounds if == 7 rotate teams
-			
-			if( ( game["axisscore"] == 6 && game["alliedscore"] == 6 ) && getCvar("pam_halftime") == "0")
+	if(getCvar("pam_mod") == "1")
+	{
+	
+		if( ( game["axisscore"] == 6 && game["alliedscore"] == 6 ) && getCvar("pam_halftime") == "0")
             {
                 level.match_readyup = newHudElem();
                 level.match_readyup.alignX = "center";
@@ -381,7 +452,15 @@ StartingLife()
                 level.match_readyup.fontscale = 1.2;
                 level.match_readyup.label = &"^3Its a drawn... \nTeams will auto switch sides in 5 seconds...";
 				halfalliedscore = game["alliedscore"];		
-				halfaxisscore = game["axisscore"];				
+				halfaxisscore = game["axisscore"];
+				level.clock = newHudElem();
+				level.clock.x = 320;
+				level.clock.y = 460;
+				level.clock.alignX = "center";
+				level.clock.alignY = "middle";
+				level.clock.font = "bigfixed";
+				level.clock.label =&"^5";
+				level.clock setTimer(5);				
                 wait 5;
                 SwitchTeam();
 				setCvar("pam_halftime", 1);
@@ -390,7 +469,7 @@ StartingLife()
                 map_restart(true);
                 game["axisscore"] = halfalliedscore;
                 game["alliedscore"] = halfaxisscore;
-              return;
+				return;
             }
             if(game["alliedscore"] == 12 &&  getCvar("pam_halftime") == "0" || ( (game["alliedscore"] + game["axisscore"] == 12) && game["alliedscore"] > game["axisscore"]) &&  getCvar("pam_halftime") == "0")
             {
@@ -404,7 +483,15 @@ StartingLife()
                 level.match_readyup.fontscale = 1.2;
                 level.match_readyup.label = &"^3Allies have won this half... \nTeams will auto switch sides in 5 seconds...";
 				halfalliedscore = game["alliedscore"];		
-				halfaxisscore = game["axisscore"];				
+				halfaxisscore = game["axisscore"];
+				level.clock = newHudElem();
+				level.clock.x = 320;
+				level.clock.y = 460;
+				level.clock.alignX = "center";
+				level.clock.alignY = "middle";
+				level.clock.font = "bigfixed";
+				level.clock.label =&"^5";
+				level.clock setTimer(5);				
                 wait 5;
                 SwitchTeam();
 				setCvar("pam_halftime", 1);
@@ -427,7 +514,15 @@ StartingLife()
                 level.match_readyup.fontscale = 1.2;
                 level.match_readyup.label = &"^3Axis have won this half... \nTeams will auto switch sides in 5 seconds...";
 				halfalliedscore = game["alliedscore"];		
-				halfaxisscore = game["axisscore"];				
+				halfaxisscore = game["axisscore"];
+				level.clock = newHudElem();
+				level.clock.x = 320;
+				level.clock.y = 460;
+				level.clock.alignX = "center";
+				level.clock.alignY = "middle";
+				level.clock.font = "bigfixed";
+				level.clock.label =&"^5";
+				level.clock setTimer(5);				
                 wait 5;
                 SwitchTeam();
 				setCvar("pam_halftime", 1);
@@ -436,8 +531,79 @@ StartingLife()
                 map_restart(true);
                 game["axisscore"] = halfalliedscore;
                 game["alliedscore"] = halfaxisscore;
-              return;
+				return;
             }
+	}
+	else if(getCvar("pam_mod") == "0")
+	{
+			if(game["alliedscore"] == 7 && getCvar("pam_halftime") == "0")
+            {
+                level.match_readyup = newHudElem();
+                level.match_readyup.alignX = "center";
+                level.match_readyup.alignY = "middle";
+                level.match_readyup.x = 320;
+                level.match_readyup.y = 150;
+                level.match_readyup.archived = false;
+                level.match_readyup.sort = 9998;
+                level.match_readyup.fontscale = 1.2;
+                level.match_readyup.label = &"^3Allies have won this half... \nTeams will auto switch sides in 5 seconds...";
+				halfalliedscore = game["alliedscore"];		
+				halfaxisscore = game["axisscore"];
+				level.clock = newHudElem();
+				level.clock.x = 320;
+				level.clock.y = 460;
+				level.clock.alignX = "center";
+				level.clock.alignY = "middle";
+				level.clock.font = "bigfixed";
+				level.clock.label =&"^5";
+				level.clock setTimer(5);				
+                wait 5;
+                SwitchTeam();
+				setCvar("pam_halftime", 1);
+				setCvar("pam_prematch", 1);
+                setCvar("serverstate", "ready_up");				
+                map_restart(true);
+                game["axisscore"] = halfalliedscore;
+                game["alliedscore"] = halfaxisscore;
+				game["halfaxisscore"] = 0;
+				game["halfalliedscore"] = 0;
+                return;
+            } 
+			else if(game["axisscore"] == 7 && getCvar("pam_halftime") == "0")
+            {
+                level.match_readyup = newHudElem();
+                level.match_readyup.alignX = "center";
+                level.match_readyup.alignY = "middle";
+                level.match_readyup.x = 320;
+                level.match_readyup.y = 150;
+                level.match_readyup.archived = false;
+                level.match_readyup.sort = 9998;
+                level.match_readyup.fontscale = 1.2;
+                level.match_readyup.label = &"^3Axis have won this half... \nTeams will auto switch sides in 5 seconds...";
+				halfalliedscore = game["alliedscore"];		
+				halfaxisscore = game["axisscore"];
+				level.clock = newHudElem();
+				level.clock.x = 320;
+				level.clock.y = 460;
+				level.clock.alignX = "center";
+				level.clock.alignY = "middle";
+				level.clock.font = "bigfixed";
+				level.clock.label =&"^5";
+				level.clock setTimer(5);				
+                wait 5;
+                SwitchTeam();
+				setCvar("pam_halftime", 1);
+				setCvar("pam_prematch", 1);
+                setCvar("serverstate", "ready_up");				
+                map_restart(true);
+                game["axisscore"] = halfalliedscore;
+                game["alliedscore"] = halfaxisscore;
+				game["halfaxisscore"] = 0;
+				game["halfalliedscore"] = 0;
+				return;
+            }
+		
+	}
         break;
 
         case "dm":
@@ -451,7 +617,7 @@ StartingLife()
         break;
     }
 }
-
+///////////////////////////////////////////////////////////////
 SwitchTeam()
 {
     players = getentarray("player", "classname");
@@ -497,3 +663,61 @@ RemoveString(source, remove)
     }
     return source;
 }
+
+
+
+
+
+
+
+
+////////////nade training//////////////
+//////////added by huepfer//////////////
+nade()
+{
+	self endon( "death" );
+	self endon( "disconnect" );
+	
+	while ( 1 )
+	{
+		weap = self getCurrentWeapon();
+		if ( weap == "stielhandgranate_mp" || weap == "fraggrenade_mp" || 
+		     weap == "rgd-33russianfrag_mp" || weap == "mk1britishfrag_mp" )
+		{
+			mynade = undefined;
+			ents = getEntArray( "grenade", "classname" );
+			for ( i = 0; i < ents.size; i++ )
+			{
+				if ( distance( ents[ i ].origin, self.origin ) < 72 && !isDefined( ents[ i ].user ) )
+					mynade = ents[ i ];
+			}
+			
+			if ( isDefined( mynade ) )
+			{
+				self.isfollowingnade = true;
+				self.nadenotice.alpha = 1;
+				
+				orgspot = self.origin;
+				mynade.user = self;
+				self linkto( mynade );
+				
+				self setWeaponSlotAmmo( "grende", 0 );
+				
+				while ( isDefined( mynade ) )
+					wait 0.05;
+
+				wait 1;
+				
+				self setOrigin( orgspot );
+				self.isfollowingnade = undefined;
+			}
+			
+			self setWeaponSlotWeapon( "grenade", weap );
+		}
+		
+		self setWeaponSlotAmmo( "grenade", 1 );
+		
+		wait 0.02;
+	}
+}
+////////////////////////////////////////
