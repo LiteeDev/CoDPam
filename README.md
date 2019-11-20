@@ -9,6 +9,25 @@ Supported By CryptXGaming.org (https://www.cryptxgaming.org)
 * Game Statistics such as Round Scoreboard Supporting the full amount of rounds played.
 * Ready Up System allowing users to press the <USE> button to confirm they're ready to play.
 
+# PAM Mod Commands
+
+```
+pam_prematch //dont touch
+pam_halftime //dont touch
+pam_strattime //enable or disable strat time(3seconds) 1=enable 0=disable
+pam_mapobjects //enable or disable map objects like mg42 or mp44 1=enable 0=disable
+pam_mg42 //enable or disable only mg42 1=enable 0=disable
+pam_nade //start training mode 1=enable 0=disable
+pam_mod //switching between score system 1=nightcup 0=funwar
+pam_start_break //start break next round 1=start break 0=end break
+```
+
+serverstate // "ready_up" for prematch "playing" for skip ready check
+
+# Setup Guide (with Release Version)
+
+Download the latest release from latest release and read the readme.txt in the CoD 1.1 mod.
+
 # Setup Guide
 
 First, start by uploading the codam_pam.gsc to main/codam.
