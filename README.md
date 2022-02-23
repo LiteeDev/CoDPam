@@ -80,3 +80,15 @@ LiteDev & Reny
 > Implement ready up mode with actual sessionstates and stuff, so re-modding codam or overlay codes (something) - Done
 > Make echo to tell who's ready up and who's not - Done (probably add red/green dots in a big TAB scoreboard in the future)
 ```
+
+Demsix 
+
+```
+
+> pam_mod 1 = MR12 (First to 13, half time at 12 rounds)
+> > Still needs below bind at the end of each MR12
+> > bind f9 rcon pam_halftime 0; rcon serverstate ready_up; rcon map_restart;
+> pam_mod 0 = First to 7 over and over
+> Stop movement in halftime and temporarily increases round time to 30 mins
+> Added info on current ruleset while in ready up state
+```
