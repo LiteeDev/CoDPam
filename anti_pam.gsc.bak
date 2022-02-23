@@ -127,9 +127,6 @@ _start()
 						if(getCvar("pam_halftime") == "1") {
 							setcvar("g_speed", "0");
 						}
-						else if(getCvar("pam_halftime") == "0") {
-							setcvar("g_speed", "190");
-						}
 						
 						setcvar("g_gravity", "800");
 						setCvar("pam_prematch", 1);
