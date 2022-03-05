@@ -130,6 +130,19 @@ _start()
 						else if(getCvar("pam_halftime") == "0") {
 							setcvar("g_speed", "190");
 						}
+
+						if(getCvar("pam_mod") == "0") {
+							setcvar("scr_sd_scorelimit", "0");
+							setcvar("scr_sd_roundlimit", "0");
+						}
+						else if(getCvar("pam_mod") == "1") {
+							setcvar("scr_sd_scorelimit", "13");
+							setcvar("scr_sd_roundlimit", "24");
+						}
+						else if(getCvar("pam_mod") == "2") {
+							setcvar("scr_sd_scorelimit", "4");
+							setcvar("scr_sd_roundlimit", "6");
+						}
 						
 						setcvar("g_gravity", "800");
 						setCvar("pam_prematch", 1);
@@ -284,6 +297,7 @@ ReadyMonitor()
            
 			setCvar("pam_prematch", 0);
             setCvar("scr_sd_roundlength", 2.5);
+			setCvar("scr_friendlyfire", 1);
 			
 			if(getCvar("pam_halftime") == "0")
 			{
@@ -376,16 +390,7 @@ Prematch_Alive()
 
 StaticPrematchHud()
 {
-	if(getCvar("pam_mod") == "1") {
-		level.match_hud_rulesetinfo = newHudElem();
-		level.match_hud_rulesetinfo.archived = false;
-		level.match_hud_rulesetinfo.x = 537;
-		level.match_hud_rulesetinfo.y = 155;
-		level.match_hud_rulesetinfo.sort = 9998;
-		level.match_hud_rulesetinfo.fontscale = 1;
-		level.match_hud_rulesetinfo.label =&"Ruleset:\nMax Rounds ^612";
-	}
-	else if (getCvar("pam_mod") == "0") {
+	if (getCvar("pam_mod") == "0") {
 		level.match_hud_rulesetinfo = newHudElem();
 		level.match_hud_rulesetinfo.archived = false;
 		level.match_hud_rulesetinfo.x = 537;
@@ -394,6 +399,25 @@ StaticPrematchHud()
 		level.match_hud_rulesetinfo.fontscale = 1;
 		level.match_hud_rulesetinfo.label =&"Ruleset:\nFirst to ^67";
 	}
+	else if(getCvar("pam_mod") == "1") {
+		level.match_hud_rulesetinfo = newHudElem();
+		level.match_hud_rulesetinfo.archived = false;
+		level.match_hud_rulesetinfo.x = 537;
+		level.match_hud_rulesetinfo.y = 155;
+		level.match_hud_rulesetinfo.sort = 9998;
+		level.match_hud_rulesetinfo.fontscale = 1;
+		level.match_hud_rulesetinfo.label =&"Ruleset:\nMax Rounds ^612";
+	}
+	else if(getCvar("pam_mod") == "2") {
+		level.match_hud_rulesetinfo = newHudElem();
+		level.match_hud_rulesetinfo.archived = false;
+		level.match_hud_rulesetinfo.x = 537;
+		level.match_hud_rulesetinfo.y = 155;
+		level.match_hud_rulesetinfo.sort = 9998;
+		level.match_hud_rulesetinfo.fontscale = 1;
+		level.match_hud_rulesetinfo.label =&"Ruleset:\nOvertime MR^63";
+	}
+	
 	
 	level.match_hud_instructions = newHudElem();
 	level.match_hud_instructions.archived = false;
@@ -465,195 +489,303 @@ StartingLife()
     switch(level.ham_g_gametype) {
         case "sd":
             
-            // Check each side rounds if == 7 rotate teams
-	if(getCvar("pam_mod") == "1")
-	{
-	
-		if( ( game["axisscore"] == 0 && game["alliedscore"] == 0 ) && getCvar("pam_halftime") == "1") {
-			setCvar("pam_halftime", 0);
-		}
-		if( ( game["axisscore"] == 6 && game["alliedscore"] == 6 ) && getCvar("pam_halftime") == "0")
-            {
-                level.match_readyup = newHudElem();
-                level.match_readyup.alignX = "center";
-                level.match_readyup.alignY = "middle";
-                level.match_readyup.x = 320;
-                level.match_readyup.y = 150;
-                level.match_readyup.archived = false;
-                level.match_readyup.sort = 9998;
-                level.match_readyup.fontscale = 1.2;
-                level.match_readyup.label = &"^3Its a draw... \nTeams will auto switch sides in 5 seconds...";
-				halfalliedscore = game["alliedscore"];		
-				halfaxisscore = game["axisscore"];
-				level.clock = newHudElem();
-				level.clock.x = 320;
-				level.clock.y = 460;
-				level.clock.alignX = "center";
-				level.clock.alignY = "middle";
-				level.clock.font = "bigfixed";
-				level.clock.label =&"^5";
-				level.clock setTimer(5);				
-                wait 5;
-				setCvar("scr_sd_roundlength", 30);
-                SwitchTeam();
-				setCvar("pam_halftime", 1);
-				setCvar("pam_prematch", 1);
-                setCvar("serverstate", "ready_up");				
-                map_restart(true);
-                game["axisscore"] = halfalliedscore;
-                game["alliedscore"] = halfaxisscore;
-				return;
-            }
-            if(game["alliedscore"] == 12 &&  getCvar("pam_halftime") == "0" || ( (game["alliedscore"] + game["axisscore"] == 12) && game["alliedscore"] > game["axisscore"]) &&  getCvar("pam_halftime") == "0")
-            {
-                level.match_readyup = newHudElem();
-                level.match_readyup.alignX = "center";
-                level.match_readyup.alignY = "middle";
-                level.match_readyup.x = 320;
-                level.match_readyup.y = 150;
-                level.match_readyup.archived = false;
-                level.match_readyup.sort = 9998;
-                level.match_readyup.fontscale = 1.2;
-                level.match_readyup.label = &"^3Allies have won this half... \nTeams will auto switch sides in 5 seconds...";
-				halfalliedscore = game["alliedscore"];		
-				halfaxisscore = game["axisscore"];
-				level.clock = newHudElem();
-				level.clock.x = 320;
-				level.clock.y = 460;
-				level.clock.alignX = "center";
-				level.clock.alignY = "middle";
-				level.clock.font = "bigfixed";
-				level.clock.label =&"^5";
-				level.clock setTimer(5);				
-                wait 5;
-				setCvar("scr_sd_roundlength", 30);
-                SwitchTeam();
-				setCvar("pam_halftime", 1);
-				setCvar("pam_prematch", 1);
-                setCvar("serverstate", "ready_up");				
-                map_restart(true);
-                game["axisscore"] = halfalliedscore;
-                game["alliedscore"] = halfaxisscore;
-                return;
-            } 
-			else if(game["axisscore"] == 12 &&  getCvar("pam_halftime") == "0" || ( (game["alliedscore"] + game["axisscore"] == 12) && game["axisscore"] > game["alliedscore"]) &&  getCvar("pam_halftime") == "0")
-            {
-                level.match_readyup = newHudElem();
-                level.match_readyup.alignX = "center";
-                level.match_readyup.alignY = "middle";
-                level.match_readyup.x = 320;
-                level.match_readyup.y = 150;
-                level.match_readyup.archived = false;
-                level.match_readyup.sort = 9998;
-                level.match_readyup.fontscale = 1.2;
-                level.match_readyup.label = &"^3Axis have won this half... \nTeams will auto switch sides in 5 seconds...";
-				halfalliedscore = game["alliedscore"];		
-				halfaxisscore = game["axisscore"];
-				level.clock = newHudElem();
-				level.clock.x = 320;
-				level.clock.y = 460;
-				level.clock.alignX = "center";
-				level.clock.alignY = "middle";
-				level.clock.font = "bigfixed";
-				level.clock.label =&"^5";
-				level.clock setTimer(5);				
-                wait 5;
-				setCvar("scr_sd_roundlength", 30);
-                SwitchTeam();
-				setCvar("pam_halftime", 1);
-				setCvar("pam_prematch", 1);
-                setCvar("serverstate", "ready_up");				
-                map_restart(true);
-                game["axisscore"] = halfalliedscore;
-                game["alliedscore"] = halfaxisscore;
-				return;
-            }
-	}
-	else if(getCvar("pam_mod") == "0")
-	{
-			if(game["alliedscore"] == 0 && game["axisscore"] == 0) {
-				setCvar("pam_halftime", 0);
+        // Check each side rounds if == 7 rotate teams
+			if(getCvar("pam_mod") == "1")
+			{			
+				if( ( game["axisscore"] == 0 && game["alliedscore"] == 0 ) && getCvar("pam_halftime") == "1") {
+					setCvar("pam_halftime", 0);
+				}
+				if( ( game["axisscore"] == 6 && game["alliedscore"] == 6 ) && getCvar("pam_halftime") == "0")
+    		        {
+    		            level.match_readyup = newHudElem();
+    		            level.match_readyup.alignX = "center";
+    		            level.match_readyup.alignY = "middle";
+    		            level.match_readyup.x = 320;
+    		            level.match_readyup.y = 150;
+    		            level.match_readyup.archived = false;
+    		            level.match_readyup.sort = 9998;
+    		            level.match_readyup.fontscale = 1.2;
+    		            level.match_readyup.label = &"^3Its a draw... \nTeams will auto switch sides in 5 seconds...";
+						halfalliedscore = game["alliedscore"];		
+						halfaxisscore = game["axisscore"];
+						level.clock = newHudElem();
+						level.clock.x = 320;
+						level.clock.y = 460;
+						level.clock.alignX = "center";
+						level.clock.alignY = "middle";
+						level.clock.font = "bigfixed";
+						level.clock.label =&"^5";
+						level.clock setTimer(5);				
+    		            wait 5;
+						setCvar("scr_friendlyfire", 0);
+						setCvar("scr_sd_roundlength", 30);
+    		            SwitchTeam();
+						setCvar("pam_halftime", 1);
+						setCvar("pam_prematch", 1);
+    		            setCvar("serverstate", "ready_up");				
+    		            map_restart(true);
+    		            game["axisscore"] = halfalliedscore;
+    		            game["alliedscore"] = halfaxisscore;
+						return;
+    		        }
+    		        if(game["alliedscore"] == 12 &&  getCvar("pam_halftime") == "0" || ( (game["alliedscore"] + game["axisscore"] == 12) && game["alliedscore"] > game["axisscore"]) &&  getCvar("pam_halftime") == "0")
+    		        {
+    		            level.match_readyup = newHudElem();
+    		            level.match_readyup.alignX = "center";
+    		            level.match_readyup.alignY = "middle";
+    		            level.match_readyup.x = 320;
+    		            level.match_readyup.y = 150;
+    		            level.match_readyup.archived = false;
+    		            level.match_readyup.sort = 9998;
+    		            level.match_readyup.fontscale = 1.2;
+    		            level.match_readyup.label = &"^3Allies have won this half... \nTeams will auto switch sides in 5 seconds...";
+						halfalliedscore = game["alliedscore"];		
+						halfaxisscore = game["axisscore"];
+						level.clock = newHudElem();
+						level.clock.x = 320;
+						level.clock.y = 460;
+						level.clock.alignX = "center";
+						level.clock.alignY = "middle";
+						level.clock.font = "bigfixed";
+						level.clock.label =&"^5";
+						level.clock setTimer(5);				
+    		            wait 5;
+						setCvar("scr_friendlyfire", 0);
+						setCvar("scr_sd_roundlength", 30);
+    		            SwitchTeam();
+						setCvar("pam_halftime", 1);
+						setCvar("pam_prematch", 1);
+    		            setCvar("serverstate", "ready_up");				
+    		            map_restart(true);
+    		            game["axisscore"] = halfalliedscore;
+    		            game["alliedscore"] = halfaxisscore;
+    		            return;
+    		        } 
+					else if(game["axisscore"] == 12 &&  getCvar("pam_halftime") == "0" || ( (game["alliedscore"] + game["axisscore"] == 12) && game["axisscore"] > game["alliedscore"]) &&  getCvar("pam_halftime") == "0")
+    		        {
+    		            level.match_readyup = newHudElem();
+    		            level.match_readyup.alignX = "center";
+    		            level.match_readyup.alignY = "middle";
+    		            level.match_readyup.x = 320;
+    		            level.match_readyup.y = 150;
+    		            level.match_readyup.archived = false;
+    		            level.match_readyup.sort = 9998;
+    		            level.match_readyup.fontscale = 1.2;
+    		            level.match_readyup.label = &"^3Axis have won this half... \nTeams will auto switch sides in 5 seconds...";
+						halfalliedscore = game["alliedscore"];		
+						halfaxisscore = game["axisscore"];
+						level.clock = newHudElem();
+						level.clock.x = 320;
+						level.clock.y = 460;
+						level.clock.alignX = "center";
+						level.clock.alignY = "middle";
+						level.clock.font = "bigfixed";
+						level.clock.label =&"^5";
+						level.clock setTimer(5);				
+    		            wait 5;
+						setCvar("scr_friendlyfire", 0);
+						setCvar("scr_sd_roundlength", 30);
+    		            SwitchTeam();
+						setCvar("pam_halftime", 1);
+						setCvar("pam_prematch", 1);
+    		            setCvar("serverstate", "ready_up");				
+    		            map_restart(true);
+    		            game["axisscore"] = halfalliedscore;
+    		            game["alliedscore"] = halfaxisscore;
+						return;
+    		        }
 			}
-			if(game["alliedscore"] == 7)
-            {
-                level.match_readyup = newHudElem();
-                level.match_readyup.alignX = "center";
-                level.match_readyup.alignY = "middle";
-                level.match_readyup.x = 320;
-                level.match_readyup.y = 150;
-                level.match_readyup.archived = false;
-                level.match_readyup.sort = 9998;
-                level.match_readyup.fontscale = 1.2;
-                level.match_readyup.label = &"^3Allies have won this half... \nTeams will auto switch sides in 5 seconds...";
-				halfalliedscore = game["alliedscore"];		
-				halfaxisscore = game["axisscore"];
-				level.clock = newHudElem();
-				level.clock.x = 320;
-				level.clock.y = 460;
-				level.clock.alignX = "center";
-				level.clock.alignY = "middle";
-				level.clock.font = "bigfixed";
-				level.clock.label =&"^5";
-				level.clock setTimer(5);				
-                wait 5;
-                SwitchTeam();
-				setCvar("pam_halftime", 1);
-				setCvar("pam_prematch", 1);
-                setCvar("serverstate", "ready_up");				
-                map_restart(true);
-                game["axisscore"] = 0;
-                game["alliedscore"] = 0;
-				game["halfaxisscore"] = 0;
-				game["halfalliedscore"] = 0;
-                return;
-            } 
-			else if(game["axisscore"] == 7)
-            {
-                level.match_readyup = newHudElem();
-                level.match_readyup.alignX = "center";
-                level.match_readyup.alignY = "middle";
-                level.match_readyup.x = 320;
-                level.match_readyup.y = 150;
-                level.match_readyup.archived = false;
-                level.match_readyup.sort = 9998;
-                level.match_readyup.fontscale = 1.2;
-                level.match_readyup.label = &"^3Axis have won this half... \nTeams will auto switch sides in 5 seconds...";
-				halfalliedscore = game["alliedscore"];		
-				halfaxisscore = game["axisscore"];
-				level.clock = newHudElem();
-				level.clock.x = 320;
-				level.clock.y = 460;
-				level.clock.alignX = "center";
-				level.clock.alignY = "middle";
-				level.clock.font = "bigfixed";
-				level.clock.label =&"^5";
-				level.clock setTimer(5);				
-                wait 5;
-                SwitchTeam();
-				setCvar("pam_halftime", 1);
-				setCvar("pam_prematch", 1);
-                setCvar("serverstate", "ready_up");				
-                map_restart(true);
-                game["axisscore"] = 0;
-                game["alliedscore"] = 0;
-				game["halfaxisscore"] = 0;
-				game["halfalliedscore"] = 0;
-				return;
-            }
-		
-	}
-        break;
+			else if(getCvar("pam_mod") == "2")
+			{
+			
+				if( ( game["axisscore"] == 0 && game["alliedscore"] == 0 ) && getCvar("pam_halftime") == "1") {
+					setCvar("pam_halftime", 0);
+				}
+				if( ( game["axisscore"] == 3 && game["alliedscore"] == 3 ) && getCvar("pam_halftime") == "0")
+    		        {
+    		            level.match_readyup = newHudElem();
+    		            level.match_readyup.alignX = "center";
+    		            level.match_readyup.alignY = "middle";
+    		            level.match_readyup.x = 320;
+    		            level.match_readyup.y = 150;
+    		            level.match_readyup.archived = false;
+    		            level.match_readyup.sort = 9998;
+    		            level.match_readyup.fontscale = 1.2;
+    		            level.match_readyup.label = &"^3Its a draw... \nTeams will auto switch sides in 5 seconds...";
+						halfalliedscore = game["alliedscore"];		
+						halfaxisscore = game["axisscore"];
+						level.clock = newHudElem();
+						level.clock.x = 320;
+						level.clock.y = 460;
+						level.clock.alignX = "center";
+						level.clock.alignY = "middle";
+						level.clock.font = "bigfixed";
+						level.clock.label =&"^5";
+						level.clock setTimer(5);				
+    		            wait 5;
+						setCvar("scr_friendlyfire", 0);
+						setCvar("scr_sd_roundlength", 30);
+    		            SwitchTeam();
+						setCvar("pam_halftime", 1);
+						setCvar("pam_prematch", 1);
+    		            setCvar("serverstate", "ready_up");				
+    		            map_restart(true);
+    		            game["axisscore"] = halfalliedscore;
+    		            game["alliedscore"] = halfaxisscore;
+						return;
+    		        }
+    		        if(game["alliedscore"] == 3 &&  getCvar("pam_halftime") == "0" || ( (game["alliedscore"] + game["axisscore"] == 3) && game["alliedscore"] > game["axisscore"]) &&  getCvar("pam_halftime") == "0")
+    		        {
+    		            level.match_readyup = newHudElem();
+    		            level.match_readyup.alignX = "center";
+    		            level.match_readyup.alignY = "middle";
+    		            level.match_readyup.x = 320;
+    		            level.match_readyup.y = 150;
+    		            level.match_readyup.archived = false;
+    		            level.match_readyup.sort = 9998;
+    		            level.match_readyup.fontscale = 1.2;
+    		            level.match_readyup.label = &"^3Allies have won this half... \nTeams will auto switch sides in 5 seconds...";
+						halfalliedscore = game["alliedscore"];		
+						halfaxisscore = game["axisscore"];
+						level.clock = newHudElem();
+						level.clock.x = 320;
+						level.clock.y = 460;
+						level.clock.alignX = "center";
+						level.clock.alignY = "middle";
+						level.clock.font = "bigfixed";
+						level.clock.label =&"^5";
+						level.clock setTimer(5);				
+    		            wait 5;
+						setCvar("scr_friendlyfire", 0);
+						setCvar("scr_sd_roundlength", 30);
+    		            SwitchTeam();
+						setCvar("pam_halftime", 1);
+						setCvar("pam_prematch", 1);
+    		            setCvar("serverstate", "ready_up");				
+    		            map_restart(true);
+    		            game["axisscore"] = halfalliedscore;
+    		            game["alliedscore"] = halfaxisscore;
+    		            return;
+    		        } 
+					else if(game["axisscore"] == 3 &&  getCvar("pam_halftime") == "0" || ( (game["alliedscore"] + game["axisscore"] == 3) && game["axisscore"] > game["alliedscore"]) &&  getCvar("pam_halftime") == "0")
+    		        {
+    		            level.match_readyup = newHudElem();
+    		            level.match_readyup.alignX = "center";
+    		            level.match_readyup.alignY = "middle";
+    		            level.match_readyup.x = 320;
+    		            level.match_readyup.y = 150;
+    		            level.match_readyup.archived = false;
+    		            level.match_readyup.sort = 9998;
+    		            level.match_readyup.fontscale = 1.2;
+    		            level.match_readyup.label = &"^3Axis have won this half... \nTeams will auto switch sides in 5 seconds...";
+						halfalliedscore = game["alliedscore"];		
+						halfaxisscore = game["axisscore"];
+						level.clock = newHudElem();
+						level.clock.x = 320;
+						level.clock.y = 460;
+						level.clock.alignX = "center";
+						level.clock.alignY = "middle";
+						level.clock.font = "bigfixed";
+						level.clock.label =&"^5";
+						level.clock setTimer(5);				
+    		            wait 5;
+						setCvar("scr_friendlyfire", 0);
+						setCvar("scr_sd_roundlength", 30);
+    		            SwitchTeam();
+						setCvar("pam_halftime", 1);
+						setCvar("pam_prematch", 1);
+    		            setCvar("serverstate", "ready_up");				
+    		            map_restart(true);
+    		            game["axisscore"] = halfalliedscore;
+    		            game["alliedscore"] = halfaxisscore;
+						return;
+    		        }
+			}
+			else if(getCvar("pam_mod") == "0")
+			{
+					if(game["alliedscore"] == 0 && game["axisscore"] == 0) {
+						setCvar("pam_halftime", 0);
+					}
+					if(game["alliedscore"] == 7)
+    		        {
+    		            level.match_readyup = newHudElem();
+    		            level.match_readyup.alignX = "center";
+    		            level.match_readyup.alignY = "middle";
+    		            level.match_readyup.x = 320;
+    		            level.match_readyup.y = 150;
+    		            level.match_readyup.archived = false;
+    		            level.match_readyup.sort = 9998;
+    		            level.match_readyup.fontscale = 1.2;
+    		            level.match_readyup.label = &"^3Allies have won this half... \nTeams will auto switch sides in 5 seconds...";
+						halfalliedscore = game["alliedscore"];		
+						halfaxisscore = game["axisscore"];
+						level.clock = newHudElem();
+						level.clock.x = 320;
+						level.clock.y = 460;
+						level.clock.alignX = "center";
+						level.clock.alignY = "middle";
+						level.clock.font = "bigfixed";
+						level.clock.label =&"^5";
+						level.clock setTimer(5);				
+    		            wait 5;
+    		            SwitchTeam();
+						setCvar("pam_halftime", 1);
+						setCvar("pam_prematch", 1);
+    		            setCvar("serverstate", "ready_up");				
+    		            map_restart(true);
+    		            game["axisscore"] = 0;
+    		            game["alliedscore"] = 0;
+						game["halfaxisscore"] = 0;
+						game["halfalliedscore"] = 0;
+    		            return;
+    		        } 
+					else if(game["axisscore"] == 7)
+    		        {
+    		            level.match_readyup = newHudElem();
+    		            level.match_readyup.alignX = "center";
+    		            level.match_readyup.alignY = "middle";
+    		            level.match_readyup.x = 320;
+    		            level.match_readyup.y = 150;
+    		            level.match_readyup.archived = false;
+    		            level.match_readyup.sort = 9998;
+    		            level.match_readyup.fontscale = 1.2;
+    		            level.match_readyup.label = &"^3Axis have won this half... \nTeams will auto switch sides in 5 seconds...";
+						halfalliedscore = game["alliedscore"];		
+						halfaxisscore = game["axisscore"];
+						level.clock = newHudElem();
+						level.clock.x = 320;
+						level.clock.y = 460;
+						level.clock.alignX = "center";
+						level.clock.alignY = "middle";
+						level.clock.font = "bigfixed";
+						level.clock.label =&"^5";
+						level.clock setTimer(5);				
+    		            wait 5;
+    		            SwitchTeam();
+						setCvar("pam_halftime", 1);
+						setCvar("pam_prematch", 1);
+    		            setCvar("serverstate", "ready_up");				
+    		            map_restart(true);
+    		            game["axisscore"] = 0;
+    		            game["alliedscore"] = 0;
+						game["halfaxisscore"] = 0;
+						game["halfalliedscore"] = 0;
+						return;
+    		        }
 
-        case "dm":
-        setCvar("g_gametype", "sd");
-        map_restart(true);
-        break;
+			}
+    		    break;
 
-        case "tdm":
-        setCvar("g_gametype", "sd");
-        map_restart(true);
-        break;
-    }
+    		    case "dm":
+    		    setCvar("g_gametype", "sd");
+    		    map_restart(true);
+    		    break;
+
+    		    case "tdm":
+    		    setCvar("g_gametype", "sd");
+    		    map_restart(true);
+    		    break;
+    		}
 }
 ///////////////////////////////////////////////////////////////
 SwitchTeam()
