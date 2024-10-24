@@ -52,9 +52,9 @@ serverstate ready_up
 ```
 
 # Authors
-* LiteDev (Discord: LiteDev#3711 | Email: office@litespeed.me | Telegram: @LiteSpeedDev)
-* Reny (Discord: Reny#5365)
-* Huepfer (Discord: huepfer92#2936)
+* LiteDev 
+* Reny 
+* Huepfer 
 
 # Update Log
 
